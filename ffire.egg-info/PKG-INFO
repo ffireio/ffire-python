@@ -1,0 +1,11 @@
+Metadata-Version: 1.0
+Name: ffire
+Version: 0.0.1
+Summary: GUI Style Events for Web Applications
+Home-page: http://github.com/rayattack/ffire
+Author: Raymond Ortserga
+Author-email: r.ortserga@fetchr.us
+License: MIT
+Description: UNKNOWN
+Keywords: Events Publish Subscribe Fire Raise Web API
+Platform: UNKNOWN
