@@ -1,9 +1,0 @@
-README.rst
-setup.cfg
-setup.py
-ffire/__init__.py
-ffire.egg-info/PKG-INFO
-ffire.egg-info/SOURCES.txt
-ffire.egg-info/dependency_links.txt
-ffire.egg-info/not-zip-safe
-ffire.egg-info/top_level.txt

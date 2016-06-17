@@ -1,4 +1,4 @@
-import io
+import codecs
 import os
 
 from setuptools import setup
@@ -12,11 +12,11 @@ def parse(*args, **kwargs):
     """
     # noinspection PyPep8Naming
     SEPARATOR = kwargs.get('separator', '\n')
-    coding = kwargs.get('coding', 'utf-8')
+    coding = kwargs.get('coding', 'UTF-8')
     stream = []
 
     for arg in args:
-        with io.open(arg, coding) as document:
+        with codecs.open(arg, 'r', coding) as document:
             stream.append(document.read())
 
     return SEPARATOR.join(stream)
