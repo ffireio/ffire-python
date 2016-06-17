@@ -21,6 +21,14 @@ class InvalidInputError(AttributeError):
         super(InvalidInputError, self).__init__(self.message)
 
 
+#: Invalid payload : i.e. payload is not http encode-able by our automatic encoding
+#: If you can encode it your self and send via one of our supported formats i.e. json or form multipart
+#: then this exception will not be thrown
+
+
+#: Invalid endpoint type i.e endpoint is not a valid url, no ip addresses allowed
+
+
 class NotSupportedError(Exception):
     """
     Exception raised when an action not supported by ffire is explored

@@ -10,7 +10,9 @@ function call not succeeding due to internal or external error.
 """
 
 
-class BrokerConnectionError(Exception):
+#: authentication exception due to credentials or something
+
+class ConnectionError(Exception):
     """
     Raised when the underlying broker could not be connected to
     """
@@ -19,4 +21,10 @@ class BrokerConnectionError(Exception):
         self.message = 'Failed to establish a connection with the broker'
         if len(args) > 0:
             self.message = args[0]
-        super(BrokerConnectionError, self).__init__(self.message)
+        super(ConnectionError, self).__init__(self.message)
+
+
+#: Event not found
+
+
+#: Unregistered endpoint : When you try to subscribe an endpoint not from a verified domain in you registry

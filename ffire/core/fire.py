@@ -6,37 +6,46 @@ ffire.core.fire
 
 Some names say everything.
 """
+import requests
+
+
 from ffire.constants import EVENT_INDEX, PAYLOAD_INDEX, TIME_INTERVALS
 from ffire.exc.invalid import InvalidInputError
+
+
+_configuration = {}
+_connection = {}
 
 
 class Fire(object):
     """
     Fire class is the main class
 
-    ffire.core.fire.Fire
+    ffire.core.ffire.Fire
     ~~~~~~~~~~~~~~~~~~~~
 
     It holds all the major APIs and points of interaction.
     """
+
+    global _connection
 
     def __call__(self, *args):
         """
         Make the class itself callable, this is done purely for the syntactic sugar
         effect it provides.
         """
-        if len(args) == 3:
+        if len(args) == 2:
+            import pdb; pdb.set_trace()
             event_name = args[EVENT_INDEX]
             payload = args[PAYLOAD_INDEX]
-
             self.event(event_name, payload)
         else:
-            raise InvalidInputError("To fire an event you must pass in the name and payload message")
+            raise InvalidInputError("To ffire an event you must pass in the name and payload message")
 
     @staticmethod
     def all():
         """
-        List all the events that have been created within the fire server
+        List all the events that have been created within the current session
         :return:
         """
         print __file__
@@ -65,14 +74,23 @@ class Fire(object):
                                         :type <type, 'bool'>
         :return:
         """
+        #: query the api endpoint for the existence of the event in the clients event pool
+        #: if it already exists raise an error or exception
+        #: if it does not create the event and return True
+        #: requests.post(create_event_endpoint, {"event_name": event_name}
         pass
 
     @staticmethod
-    def consume(event_name, time_interval=TIME_INTERVALS.ONE_HOUR, paginate=None):
+    def consume(event_name, endpoint, time_interval=TIME_INTERVALS.ONE_HOUR, paginate=None):
         """
-        Fetch all events that have occured within the duration of the :param `type_interval`
+        Fetch all events that have occurred within the duration of the :param `type_interval`
 
         :param event_name:              The name of the event to limit the consumption to
+                                        :type <type, 'str'>
+
+        :param endpoint:                The endpoint that will receive the resent messages,
+                                        Ideally this should represent only endpoints that were down
+                                        during the time interval and as such missed ffired events
                                         :type <type, 'str'>
 
         :param time_interval:           The time interval to use to limit or filter out events
@@ -86,10 +104,13 @@ class Fire(object):
                                         interval.
                                         :type <type, 'list'>
         """
+        #: send a request to the ffire api endpoint and get json response on status
+        #: if success it means that such an event exists and the payload from that interval has been sent
         pass
 
     @staticmethod
     def delete(event_name, drop_messages=False):
+        #: shoot to ffire api and sit back and eat cake
         pass
 
     @staticmethod
@@ -102,9 +123,9 @@ class Fire(object):
         :param event_name:          The name of the event to raise, prior to an event being raised it
                                     expects that it has been created.
                                     Failure to create an event before firing it will raise an error.
-                                    Ideally the only services that should fire events are the ones that
+                                    Ideally the only services that should ffire events are the ones that
                                     registered the events in the first place.
-                                    In Essence it is considered good practice to fire only the events
+                                    In Essence it is considered good practice to ffire only the events
                                     you raise.
                                     :type <type, 'str'>
 
@@ -114,38 +135,34 @@ class Fire(object):
                                     :type <type, 'dict'>
         :return:
         """
-        pass
+        #: validate that the payload is not empty, a payload MUST never be empty or else what's the point
+        #: if is not empty then automatically encode to json
+        #: send the payload to the event ffiring api endpoint
+        print "%r Event Ffired" % event_name
+        return False
 
     @staticmethod
-    def init(broker, configuration=None, host=None, port=None, username=None, password=None):
+    def init(username=None, password=None, configuration=None):
         """
         Initializes ffire for use. If no other parameter is passed in with the mandatory :param `broker_type`
         parameter then ffire assumes the broker is configured on localhost and as such tries to create
         the events on the same machine.
 
-        :param broker:                          The broker to use as the underlying technology for creating,
-                                                subscribing to, and firing events.
-                                                Currently only RABBIT MQ, and SQS - SNS Combo is supported.
-                                                :type <type, 'str'>
-
         :param configuration:                   The configuration to use for the initialization of the ffire
                                                 library.
                                                 :type <type, 'ffire.core.configuration.Configuration'>
 
-        :param host:                            The host name or computer name upon which the underlying
-                                                broker or technology resides.
+        :param username:                        The usename to use in authentication for all ffire actions
+                                                :type <type, 'str'>
 
-        :param port:                            The port to which to forward all communications targeted at
-                                                the underlying broker, technology.
+        :param password:                        The access qualifier credential to use in validation of token
+                                                :type <type, 'str'>
 
-        :param username:                        The username credential to use in authentication and authorized
-                                                access restriction broker operations. (If applicable)
-
-        :param password:                        The password credential to use in validation and authorization of
-                                                access restriction broker operations.
-
-        :return:
+        :return initialized:                    Status of the initialization call
+                                                :type <type, 'bool'>
         """
+        #: was a config provided? use it or dump it and continue
+        #: send the credentials to the ffire authentication init endpoint and process the response
         pass
 
     @staticmethod
@@ -167,4 +184,68 @@ class Fire(object):
 
         :return:
         """
+        #: slight endpoint validation
+        #: shoot to ffire api and process results
         pass
+
+
+def __init_connection(username=None, password=None):
+    """
+    Initialize the connections necessary to use ffire for communication with
+    necessary brokers and backing systems.
+
+    :param username:        The username that uniquely identifies and qualifies this
+                            client
+                            :type <type, 'str'>
+
+    :param password:        The password used to qualify the username
+                            :type <type, 'str'>
+
+    :return status:         Boolean value stating the result of the operation
+                            :type <type, 'bool'>
+    """
+    global _configuration
+    global _connection
+
+    if _configuration.get('config'):
+        #: do the configuration initialization here
+        config = {
+            'username': username,
+            'password': password,
+        }
+        #: add the authentication token and key to the request headers
+        authentication_credentials = requests.post('', {})
+        _connection['username'] = authentication_credentials.get('token')
+        _connection['authentication_key'] = authentication_credentials.get('key')
+        _configuration['config'] = config
+    return _configuration.get('config')
+
+
+def __get_authentication_endpoint():
+    """
+    Returns properly built authentication endpoint
+
+    :return authentication_endpoint:    The fully formatted ready to ffire endpoint for
+                                        authentication on the ffire api.
+                                        :type <type, 'str'>
+    """
+    pass
+
+
+def __get_event_endpoint(event_name, **filters):
+    """
+    Builds the restful https api to hit for working with an event
+
+    :param event_name:              The event name to use in replacing format placeholders that
+                                    might be present in the api endpoint constant string
+                                    :type <type, 'str'>
+
+    :param filters:                 Key value collection of parameters renderable to the api
+                                    string endpoint
+                                    :type <type, 'dict'>
+
+    :return subscribe_endpoint:     The fully formatted ready to ffire endpoint
+                                    :type <type, 'str'>
+
+    """
+    pass

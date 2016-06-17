@@ -7,10 +7,25 @@ ffire.constants.all
 Major project constants are declared here, this file imports from no one
 """
 
-EVENT_INDEX = 2
+
+API_ENDPOINT = 'https://api.ffire.io/v1/'
+
+AUTHENTICATION_ENDPOINT = API_ENDPOINT + 'init'
+
+CREATE_EVENT_ENDPOINT = API_ENDPOINT + 'events'
+CONSUME_EVENT_ENDPOINT = API_ENDPOINT + 'events/{event_name}/updates?timestamp={time_stamp}'
+DELETE_EVENT_ENDPOINT = API_ENDPOINT + 'events/{event_name}'  #: Placeholder will be replaced with event name
+
+FIRE_EVENT_ENDPOINT = API_ENDPOINT + 'events/{event_name}/bombs-away'
+
+SUBSCRIBE_EVENT_ENDPOINT = API_ENDPOINT + 'events/{event_name}/subscriptions'
+
+
+EVENT_INDEX = 0
+
 
 PASSWORD = 'password'
-PAYLOAD_INDEX = 3
+PAYLOAD_INDEX = 1
 PORT = 'port'
 
 USERNAME = 'username'

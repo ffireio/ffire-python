@@ -9,7 +9,7 @@ Creating and firing events should be as easy as creating and firing events. No h
 from ffire.core.fire import Fire
 
 
-fire = Fire()
+ffire = Fire()
 
 __all__ = ['ffire']
 

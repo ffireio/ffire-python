@@ -8,6 +8,7 @@ Ensures the main module is as expected
 """
 from unittest import TestCase
 
+
 class FireTest(TestCase):
     """
     Fire class tests collection effort.

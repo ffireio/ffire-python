@@ -26,6 +26,7 @@ class FailedExceptionTest(TestCase):
         Teardown expensive resources if any
         :return:
         """
+        pass
 
     def test_broker_connection_error(self):
         """
