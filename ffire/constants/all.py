@@ -13,7 +13,7 @@ API_ENDPOINT = 'https://api.ffire.io/v1/'
 AUTHENTICATION_ENDPOINT = API_ENDPOINT + 'init'
 
 CREATE_EVENT_ENDPOINT = API_ENDPOINT + 'events'
-CONSUME_EVENT_ENDPOINT = API_ENDPOINT + 'events/{event_name}/updates?interval={interval}'
+CONSUME_EVENTS_ENDPOINT = API_ENDPOINT + 'events/{event_name}/updates/{interval}'
 DELETE_EVENT_ENDPOINT = API_ENDPOINT + 'events/{event_name}'  #: Placeholder will be replaced with event name
 
 FIRE_EVENT_ENDPOINT = API_ENDPOINT + 'events/{event_name}/ffire'

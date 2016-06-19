@@ -15,8 +15,10 @@ from validators import ValidationFailure
 
 
 from ffire.constants import EVENT_INDEX, PAYLOAD_INDEX, TIME_INTERVALS
-from ffire.constants.all import AUTHENTICATION_ENDPOINT, CREATE_EVENT_ENDPOINT, FIRE_EVENT_ENDPOINT, \
-    SUBSCRIBE_EVENT_ENDPOINT
+from ffire.constants.all import AUTHENTICATION_ENDPOINT, CONSUME_EVENTS_ENDPOINT
+from ffire.constants.all import CREATE_EVENT_ENDPOINT, DELETE_EVENT_ENDPOINT
+from ffire.constants.all import FIRE_EVENT_ENDPOINT, SUBSCRIBE_EVENT_ENDPOINT
+
 from ffire.exc.failed import AuthenticationError
 from ffire.exc.invalid import InvalidInputError, InvalidEndpointError
 
@@ -107,7 +109,7 @@ class Fire(object):
         """
         if response.status_code == 401:
             raise Exception("Initialize ffire by calling ffire.init(username, password) before usage")
-        if response.status_code == 200 and Fire._is_success(response.json()):
+        if str(response.status_code).startswith('20') and Fire._is_success(response.json()):
             return True
         return False
 
@@ -205,11 +207,15 @@ class Fire(object):
                                         :type <type, 'bool'>
         :return:
         """
-        #: query the api endpoint for the existence of the event in the clients event pool
-        #: if it already exists raise an error or exception
-        #: if it does not create the event and return True
-        #: requests.post(create_event_endpoint, {"event_name": event_name}
-        pass
+        endpoint_url = CREATE_EVENT_ENDPOINT
+        try:
+            response = _session.post(endpoint_url, json={"event_name": event_name})
+        except ConnectionError:
+            print 'No internet connection'
+        else:
+            valid = Fire.__handle_request_response(response)
+            return valid
+        return False
 
     @staticmethod
     def consume(event_name, endpoint, time_interval=TIME_INTERVALS.ONE_HOUR, paginate=None):
@@ -235,14 +241,28 @@ class Fire(object):
                                         interval.
                                         :type <type, 'list'>
         """
-        #: send a request to the ffire api endpoint and get json response on status
-        #: if success it means that such an event exists and the payload from that interval has been sent
-        pass
+        endpoint_url = CONSUME_EVENTS_ENDPOINT.format(event_name=event_name, interval=time_interval)
+        try:
+            validators.url(endpoint_url)
+        except ValidationFailure:
+            raise InvalidEndpointError()
+
+        try:
+            response = _session.post(endpoint_url, json={"event_name": event_name, "endpoint": endpoint})
+        except ConnectionError:
+            print 'No internet connection'
+        else:
+            return response.status_code == 200 or False
 
     @staticmethod
     def delete(event_name, drop_messages=False):
-        #: shoot to ffire api and sit back and eat cake
-        pass
+        endpoint_url = DELETE_EVENT_ENDPOINT.format(event_name=event_name)
+        try:
+            response = _session.delete(endpoint_url, json={"event_name": event_name})
+        except ConnectionError:
+            print 'No internet connection'
+        else:
+            return response.status_code == 204 or False
 
     @staticmethod
     def event(event_name, payload):
@@ -336,8 +356,6 @@ class Fire(object):
 
         :return:
         """
-        #: slight endpoint validation
-        #: shoot to ffire api and process results
         endpoint_url = SUBSCRIBE_EVENT_ENDPOINT.format(event_name=event_name)
         try:
             validators.url(endpoint)

@@ -32,6 +32,25 @@ class FireTest(TestCase):
         """
         pass
 
+    def test_consume_events(self):
+        """
+        Ensure events consume method allows for and successfully communicates with
+        ffire apis to resume events consuming from approximate point of failure
+        using a time interval in hours
+        :return:
+        """
+        t = self.ffire.consume("test_order_created", "https://api.ffire.io/order-created-endpoint", paginate=5)
+        self.assertTrue(t)
+
+    def test_delete_events(self):
+        """
+        Ensure events delete method allows for and successfully communicates with
+        ffire apis to delete events created
+        :return:
+        """
+        t = self.ffire.delete("test_order_created")
+        self.assertTrue(t)
+
     def test_init(self):
         """
         Tests to ensure that configuration works correctly
