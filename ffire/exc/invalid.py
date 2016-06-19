@@ -26,7 +26,18 @@ class InvalidInputError(AttributeError):
 #: then this exception will not be thrown
 
 
-#: Invalid endpoint type i.e endpoint is not a valid url, no ip addresses allowed
+class InvalidEndpointError(Exception):
+    """
+    Exception raised when an invalid endpoint is provided for subscription
+    to a ffire empowered event
+    """
+
+    def __init__(self, *args, **kwargs):
+        self.message = 'The endpoint you provided is not a valid http url endpoint'
+        if len(args) > 0:
+            self.message += args[0]
+
+        super(InvalidEndpointError, self).__init__(self.message)
 
 
 class NotSupportedError(Exception):

@@ -9,7 +9,7 @@ Tests that the connection module operations are as expected
 from unittest import TestCase
 
 
-class ConnectionTest(TestCase):
+class UtilsTest(TestCase):
     """
     Connection Test Class
     """

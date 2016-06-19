@@ -7,14 +7,24 @@ ffire.core.fire
 Some names say everything.
 """
 import requests
+import validators
+
+from requests import ConnectionError
+from requests import Request, Session
+from validators import ValidationFailure
 
 
 from ffire.constants import EVENT_INDEX, PAYLOAD_INDEX, TIME_INTERVALS
-from ffire.exc.invalid import InvalidInputError
-
+from ffire.constants.all import AUTHENTICATION_ENDPOINT, CREATE_EVENT_ENDPOINT, FIRE_EVENT_ENDPOINT, \
+    SUBSCRIBE_EVENT_ENDPOINT
+from ffire.exc.failed import AuthenticationError
+from ffire.exc.invalid import InvalidInputError, InvalidEndpointError
 
 _configuration = {}
 _connection = {}
+
+_session = Session()
+_request = Request()
 
 
 class Fire(object):
@@ -25,9 +35,24 @@ class Fire(object):
     ~~~~~~~~~~~~~~~~~~~~
 
     It holds all the major APIs and points of interaction.
+
+    >>> ffire = Fire()
+    >>> success_json = {"status": "success", "data": {"key": "value"}}
+    >>> failure_json = {"status": "failed", "message": "testing purposes only"}
+    >>> malformed_json = {"rice": "and beans"}
+
+    >>> ffire.__init_connection("test-username", "test-password")
+    True
+
+    >>> ffire.__get_event_endpoint("abracadabra")
+    "events/abracadabra/ffire"
+
     """
 
     global _connection
+
+    def __init__(self):
+        self.truer = True
 
     def __call__(self, *args):
         """
@@ -35,12 +60,118 @@ class Fire(object):
         effect it provides.
         """
         if len(args) == 2:
-            import pdb; pdb.set_trace()
             event_name = args[EVENT_INDEX]
             payload = args[PAYLOAD_INDEX]
-            self.event(event_name, payload)
+            res = self.event(event_name, payload)
+            return res
         else:
             raise InvalidInputError("To ffire an event you must pass in the name and payload message")
+
+    @staticmethod
+    def __get_authenticated_request(http_method, url):
+        """
+        Returns a request object primed with the correct headers for authentication to work
+
+        :return req:        The primed request object to be returned
+                            :type <type, 'requests'>
+        """
+        pass
+
+    @staticmethod
+    def __get_event_endpoint(event_name, **filters):
+        """
+        Builds the restful https api to hit for working with an event
+
+        :param event_name:              The event name to use in replacing format placeholders that
+                                        might be present in the api endpoint constant string
+                                        :type <type, 'str'>
+
+        :param filters:                 Key value collection of parameters renderable to the api
+                                        string endpoint
+                                        :type <type, 'dict'>
+
+        :return subscribe_endpoint:     The fully formatted ready to ffire endpoint
+                                        :type <type, 'str'>
+
+        """
+        return FIRE_EVENT_ENDPOINT.format(event_name=event_name)
+
+    @staticmethod
+    def __handle_request_response(response):
+        """
+        Ensures the request response is resolved appropriately across method calls
+
+        :param response:        The http response to handle and ensure correct resolution
+                                :type <type, 'requests.Response'>
+        :return:
+        """
+        if response.status_code == 401:
+            raise Exception("Initialize ffire by calling ffire.init(username, password) before usage")
+        if response.status_code == 200 and Fire._is_success(response.json()):
+            return True
+        return False
+
+    @staticmethod
+    def __init_connection(username=None, password=None):
+        """
+        Initialize the connections necessary to use ffire for communication with
+        necessary backing system.
+
+        :param username:        The username that uniquely identifies and qualifies this
+                                client
+                                :type <type, 'str'>
+
+        :param password:        The password used to qualify the username
+                                :type <type, 'str'>
+
+        :return status:         Boolean value stating the result of the operation
+                                :type <type, 'bool'>
+        """
+        global _configuration
+        #: content validation has been performed before invoking this private method
+        authentication_json = {"username": username, "password": password}
+        try:
+            response = requests.post(AUTHENTICATION_ENDPOINT, json=authentication_json)
+        except ConnectionError:
+            return False
+        else:
+            if response.status_code == 200:
+                json_response = response.json()
+                _configuration["Authentication-Token"] = json_response.get("token")
+                _configuration["Authentication-Key"] = json_response.get("key")
+                _configuration['initialized'] = True
+
+                global _session
+                _session.headers.update(_configuration)
+                return True
+            return False
+
+    @staticmethod
+    def _get_auth_credentials():
+        global _configuration
+        return _configuration
+
+    @staticmethod
+    def _is_initialized():
+        global _configuration
+        initialized = _configuration.get('initialized', False)
+        return initialized
+
+    @staticmethod
+    def _is_success(json_payload):
+        """
+        Returns the status of the response  based on the json content of the response
+
+        :param json_payload:    The json payload to test for a truth value content
+                                :type <type, 'dict'>
+        :return:
+        """
+        validity = True if json_payload.get("status") == "success" else False
+        return validity
+
+    @staticmethod
+    def _is_sendable(payload):
+        return isinstance(payload, (int, str, dict))
 
     @staticmethod
     def all():
@@ -135,18 +266,39 @@ class Fire(object):
                                     :type <type, 'dict'>
         :return:
         """
-        #: validate that the payload is not empty, a payload MUST never be empty or else what's the point
-        #: if is not empty then automatically encode to json
-        #: send the payload to the event ffiring api endpoint
-        print "%r Event Ffired" % event_name
+        endpoint_url = Fire.__get_event_endpoint(event_name)
+        if Fire._is_sendable(payload):
+            try:
+                response = _session.post(endpoint_url, json={"payload": payload})
+                if response.status_code == 401:
+                    raise Exception("Initialize ffire by calling ffire.init(username, password) before usage")
+                if response.status_code == 200 and Fire._is_success(response.json()):
+                    return True
+            except ConnectionError:
+                print 'No Internet Connection'
         return False
 
     @staticmethod
-    def init(username=None, password=None, configuration=None):
+    def fire(event_name, payload):
         """
-        Initializes ffire for use. If no other parameter is passed in with the mandatory :param `broker_type`
-        parameter then ffire assumes the broker is configured on localhost and as such tries to create
-        the events on the same machine.
+        Proxy method for firing event, uses the internal event implementation and exists
+        solely as syntactic sugar for those that want an easy to remember method call
+
+        :param event_name:      The name of the event that is to be fired, must have been prior
+                                created.
+                                :type <type, 'str'>
+
+        :param payload:         The payload to fire with the event
+                                :type <type, 'dict'>
+
+        :return:
+        """
+        res = Fire.event(event_name, payload)
+        return res
+
+    def init(self, username=None, password=None, configuration=None):
+        """
+        Initializes ffire for use by authenticating with the ffire io platform and priming for communication.
 
         :param configuration:                   The configuration to use for the initialization of the ffire
                                                 library.
@@ -161,9 +313,9 @@ class Fire(object):
         :return initialized:                    Status of the initialization call
                                                 :type <type, 'bool'>
         """
-        #: was a config provided? use it or dump it and continue
-        #: send the credentials to the ffire authentication init endpoint and process the response
-        pass
+        if username and password:
+            return self.__init_connection(username, password)
+        return False
 
     @staticmethod
     def subscribe(event_name, endpoint):
@@ -186,66 +338,17 @@ class Fire(object):
         """
         #: slight endpoint validation
         #: shoot to ffire api and process results
-        pass
+        endpoint_url = SUBSCRIBE_EVENT_ENDPOINT.format(event_name=event_name)
+        try:
+            validators.url(endpoint)
+        except ValidationFailure:
+            raise InvalidEndpointError()
 
-
-def __init_connection(username=None, password=None):
-    """
-    Initialize the connections necessary to use ffire for communication with
-    necessary brokers and backing systems.
-
-    :param username:        The username that uniquely identifies and qualifies this
-                            client
-                            :type <type, 'str'>
-
-    :param password:        The password used to qualify the username
-                            :type <type, 'str'>
-
-    :return status:         Boolean value stating the result of the operation
-                            :type <type, 'bool'>
-    """
-    global _configuration
-    global _connection
-
-    if _configuration.get('config'):
-        #: do the configuration initialization here
-        config = {
-            'username': username,
-            'password': password,
-        }
-        #: add the authentication token and key to the request headers
-        authentication_credentials = requests.post('', {})
-        _connection['username'] = authentication_credentials.get('token')
-        _connection['authentication_key'] = authentication_credentials.get('key')
-        _configuration['config'] = config
-    return _configuration.get('config')
-
-
-def __get_authentication_endpoint():
-    """
-    Returns properly built authentication endpoint
-
-    :return authentication_endpoint:    The fully formatted ready to ffire endpoint for
-                                        authentication on the ffire api.
-                                        :type <type, 'str'>
-    """
-    pass
-
-
-def __get_event_endpoint(event_name, **filters):
-    """
-    Builds the restful https api to hit for working with an event
-
-    :param event_name:              The event name to use in replacing format placeholders that
-                                    might be present in the api endpoint constant string
-                                    :type <type, 'str'>
-
-    :param filters:                 Key value collection of parameters renderable to the api
-                                    string endpoint
-                                    :type <type, 'dict'>
-
-    :return subscribe_endpoint:     The fully formatted ready to ffire endpoint
-                                    :type <type, 'str'>
-
-    """
-    pass
+        try:
+            response = _session.post(endpoint_url, json={"endpoint": endpoint})
+        except ConnectionError:
+            print 'No internet connection'
+        else:
+            valid = Fire.__handle_request_response(response)
+            return valid
+        return False

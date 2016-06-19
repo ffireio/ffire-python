@@ -10,7 +10,17 @@ function call not succeeding due to internal or external error.
 """
 
 
-#: authentication exception due to credentials or something
+class AuthenticationError(Exception):
+    """
+    Raised when the underlying broker could not be connected to
+    """
+
+    def __init__(self, *args, **kwargs):
+        self.message = 'Failed to authenticate a connection with the ffire api'
+        if len(args) > 0:
+            self.message = args[0]
+        super(AuthenticationError, self).__init__(self.message)
+
 
 class ConnectionError(Exception):
     """
