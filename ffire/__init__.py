@@ -13,12 +13,3 @@ ffire = Fire()
 
 __all__ = ['ffire']
 
-
-VERSION = (0, 0, 1)
-SEPARATOR = '.'
-
-
-def get_version():
-    return SEPARATOR.join(map(lambda x: str(x), VERSION))
-
-__version__ = get_version()

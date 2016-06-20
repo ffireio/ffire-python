@@ -181,7 +181,7 @@ class Fire(object):
         List all the events that have been created within the current session
         :return:
         """
-        print __file__
+        pass
 
     @staticmethod
     def create(event_name, category='event', protected=True):
