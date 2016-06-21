@@ -211,7 +211,7 @@ class Fire(object):
         try:
             response = _session.post(endpoint_url, json={"event_name": event_name})
         except ConnectionError:
-            print 'No internet connection'
+            print('No internet connection')
         else:
             valid = Fire.__handle_request_response(response)
             return valid
@@ -250,7 +250,7 @@ class Fire(object):
         try:
             response = _session.post(endpoint_url, json={"event_name": event_name, "endpoint": endpoint})
         except ConnectionError:
-            print 'No internet connection'
+            print('No internet connection')
         else:
             return response.status_code == 200 or False
 
@@ -260,7 +260,7 @@ class Fire(object):
         try:
             response = _session.delete(endpoint_url, json={"event_name": event_name})
         except ConnectionError:
-            print 'No internet connection'
+            print('No internet connection')
         else:
             return response.status_code == 204 or False
 
@@ -295,7 +295,7 @@ class Fire(object):
                 if response.status_code == 200 and Fire._is_success(response.json()):
                     return True
             except ConnectionError:
-                print 'No Internet Connection'
+                print('No Internet Connection')
         return False
 
     @staticmethod
@@ -365,7 +365,7 @@ class Fire(object):
         try:
             response = _session.post(endpoint_url, json={"endpoint": endpoint})
         except ConnectionError:
-            print 'No internet connection'
+            print('No internet connection')
         else:
             valid = Fire.__handle_request_response(response)
             return valid
