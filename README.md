@@ -1,6 +1,8 @@
 FFIRE
 =====
 
+[![Build Status](https://travis-ci.org/ffireio/ffire-python.svg?branch=dev)](https://travis-ci.org/ffireio/ffire-python)
+
 Ffire enables you to use GUI Style event driven programming in your web application with
 10 lines of code or less.
 
