@@ -1,5 +1,5 @@
 ordereddict==1.1
 pytest==2.9.1
-requests==2.10.0
+requests==2.20.0
 requests-toolbelt==0.6.2
 validators==0.10.3
